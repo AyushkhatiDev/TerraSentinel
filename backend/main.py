@@ -54,10 +54,12 @@ async def unhandled_error_handler(_request: Request, exc: Exception):
     print(f"Unexpected TerraSentinel API error: {exc}")
     return JSONResponse(status_code=500, content={"detail": "An unexpected server error occurred."})
 
-# CORS — allow frontend dev server
-allowed_origins = [origin.strip() for origin in os.getenv(
-    "CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
-).split(",") if origin.strip()]
+# CORS — allow frontend dev servers and production domains
+cors_env = os.getenv("CORS_ORIGINS", "*")
+if cors_env.strip() == "*":
+    allowed_origins = ["*"]
+else:
+    allowed_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
