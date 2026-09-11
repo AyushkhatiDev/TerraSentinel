@@ -1,0 +1,14 @@
+{
+  "name": "terrasentinel",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TerraSentinel local development launcher",
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names API,WEB --prefix-colors blue,green \"python3 -m uvicorn main:app --app-dir backend --reload --port 8000\" \"npm run dev --prefix frontend\"",
+    "start": "npm run dev",
+    "setup": "npm install && npm install --prefix frontend && python3 -m pip install -r backend/requirements.txt"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
