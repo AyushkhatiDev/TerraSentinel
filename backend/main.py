@@ -79,6 +79,17 @@ app.include_router(analytics_router)
 app.include_router(argus_router)
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "TerraSentinel API",
+        "status": "operational",
+        "version": "1.0.0-prototype",
+        "docs_url": "/docs",
+        "health_check": "/api/health",
+    }
+
+
 @app.get("/api/health", response_model=HealthResponse)
 def health_check():
     return HealthResponse(
