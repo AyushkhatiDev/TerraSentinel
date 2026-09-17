@@ -42,7 +42,7 @@ export default function TopNav({ title }: { title: string }) {
         <h2 className="text-xs font-bold text-white tracking-[0.14em] shrink-0 uppercase">{title}</h2>
         <span className="hidden lg:block h-4 w-px bg-navy-600/70 shrink-0" />
         <span className="hidden lg:flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 shrink-0 tracking-wider">
-          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> NATIONAL DISASTER READINESS NETWORK
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> NORTH-EAST INDIA • DISASTER MONITORING
         </span>
       </div>
 
