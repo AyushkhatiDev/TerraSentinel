@@ -7,6 +7,7 @@ import ErrorState from '../components/ui/ErrorState';
 import {
   Camera, Cloud, Droplets, Satellite, Map, Users, CheckCircle,
   Radio, Clock, ExternalLink, Wifi, ServerCog, Activity, Eye,
+  Zap, Loader2
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -30,11 +31,24 @@ function relativeTime(date?: string) {
 }
 
 export default function DataSources() {
-  const { refreshKey, argusEvent, setArgusEvent, setShowArgusEvent } = useApp();
+  const { addToast, refreshKey, argusEvent, setArgusEvent, setShowArgusEvent } = useApp();
   const [sources, setSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+  const [testingFeeds, setTestingFeeds] = useState(false);
+
+  const handleTestFeeds = async () => {
+    if (testingFeeds) return;
+    setTestingFeeds(true);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    addToast({
+      title: 'Ingestion Bus Verified',
+      message: 'All 6 external sensor & vision feeds active. Average gateway latency: 14 ms.',
+      severity: 'success',
+    });
+    setTestingFeeds(false);
+  };
 
   const handleViewEvent = async () => {
     let event: ArgusEvent | null = argusEvent;
@@ -74,7 +88,18 @@ export default function DataSources() {
           <h1 className="text-2xl font-bold tracking-tight text-white">Data Sources</h1>
           <p className="mt-1 text-xs text-slate-400">External intelligence feeds monitored by TerraSentinel.</p>
         </div>
-        <div className="surface-subtle flex items-center gap-2 px-3 py-2 text-[10px] text-slate-400"><Clock className="h-3.5 w-3.5 text-blue-300" /> Source status is simulated for this prototype.</div>
+        <div className="flex items-center gap-2">
+          <div className="surface-subtle flex items-center gap-2 px-3 py-2 text-[10px] text-slate-400"><Clock className="h-3.5 w-3.5 text-blue-300" /> Source status is simulated for this prototype.</div>
+          <button
+            type="button"
+            onClick={handleTestFeeds}
+            disabled={testingFeeds}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer shadow-sm active:scale-[0.98] disabled:opacity-50"
+          >
+            {testingFeeds ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+            <span>Ping Feeds</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

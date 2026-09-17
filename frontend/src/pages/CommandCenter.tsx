@@ -115,7 +115,7 @@ export default function CommandCenter() {
           <div className="hidden sm:flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-800/80 px-3 py-2 text-[10px] text-slate-400">
             <MapIcon className="h-3.5 w-3.5 text-blue-300" /> LIVE COVERAGE <ChevronRight className="h-3 w-3" /> <span className="font-semibold text-slate-200">{zones.length} zones</span>
           </div>
-          <button onClick={refreshOperationalData} disabled={refreshing} className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-800 px-3 py-2 text-[10px] font-semibold text-slate-300 transition-colors hover:border-blue-400/50 hover:text-white disabled:opacity-60">
+          <button type="button" onClick={refreshOperationalData} disabled={refreshing} className="flex items-center gap-2 rounded-lg border border-navy-600 bg-navy-800 px-3 py-2 text-[10px] font-semibold text-slate-300 transition-all hover:border-blue-400/50 hover:text-white cursor-pointer active:scale-[0.98] disabled:opacity-60">
             <RefreshCw className={`h-3.5 w-3.5 text-blue-300 ${refreshing ? 'animate-spin' : ''}`} /> REFRESH
           </button>
         </div>
@@ -140,12 +140,12 @@ export default function CommandCenter() {
           <div className="surface grid grid-cols-1 gap-3 p-3 sm:grid-cols-[auto_1fr] sm:items-center">
             <div className="flex items-center gap-3 border-b border-navy-700 pb-3 sm:border-b-0 sm:border-r sm:pr-4 sm:pb-0">
               <div className="flex h-9 w-9 items-center justify-center rounded-md border border-red-500/30 bg-red-500/10"><Siren className="h-4 w-4 text-red-300" /></div>
-              <div><div className="section-label">Active alert queue</div><div className="mt-1 text-lg font-bold text-white">{activeAlerts.length}</div></div>
+              <div><div className="section-label">Active alert queue</div><div className="mt-1 text-lg font-bold text-white font-mono">{activeAlerts.length}</div></div>
             </div>
             <div className="min-w-0">
-              <div className="mb-1 flex items-center justify-between"><span className="section-label">Priority watchlist</span><span className="text-[10px] text-slate-500">Updated {lastSynced.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span></div>
+              <div className="mb-1 flex items-center justify-between"><span className="section-label">Priority watchlist</span><span className="text-[10px] text-slate-500 font-mono">Updated {lastSynced.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span></div>
               <div className="grid grid-cols-1 gap-1.5 md:grid-cols-3">
-                {priorityZones.map(zone => <button key={zone.id} onClick={() => handleZoneSelect(zone)} className="flex min-w-0 items-center justify-between rounded-md bg-navy-900/75 px-2.5 py-2 text-left transition-colors hover:bg-navy-700">
+                {priorityZones.map(zone => <button key={zone.id} type="button" onClick={() => handleZoneSelect(zone)} className={`flex min-w-0 items-center justify-between rounded-md px-2.5 py-2 text-left transition-all cursor-pointer border ${selectedZoneId === zone.id ? 'bg-navy-700 border-blue-400/60 shadow-sm' : 'bg-navy-900/75 border-navy-700/60 hover:bg-navy-800 hover:border-blue-400/40'}`}>
                   <span className="truncate text-[11px] font-medium text-slate-200">{zone.name.split('—')[0].trim()}</span>
                   <span className={`ml-2 font-mono text-[11px] font-bold ${zone.risk_score >= 75 ? 'text-red-300' : zone.risk_score >= 50 ? 'text-orange-300' : 'text-amber-300'}`}>{zone.risk_score}</span>
                 </button>)}

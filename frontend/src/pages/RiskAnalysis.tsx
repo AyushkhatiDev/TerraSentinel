@@ -1,24 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { fetchRiskZone, fetchRiskTrend, fetchRainfallRisk } from '../api/client';
+import { fetchRiskZone, fetchRiskZones, fetchRiskTrend, fetchRainfallRisk } from '../api/client';
 import type { RiskZone, TimeSeriesPoint } from '../api/client';
 import { useApp } from '../context/AppContext';
 import RiskGauge from '../components/ui/RiskGauge';
 import StatusBadge from '../components/ui/StatusBadge';
 import LoadingState from '../components/ui/LoadingState';
 import ErrorState from '../components/ui/ErrorState';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { CloudRain, Droplets, Mountain, Activity, History, MapPin, CheckCircle, Send, Camera } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine } from 'recharts';
+import { CloudRain, Droplets, Mountain, Activity, History, MapPin, CheckCircle, Send, Camera, ChevronDown } from 'lucide-react';
 
 export default function RiskAnalysis() {
   const location = useLocation();
-  const { selectedZoneId, addToast, refreshKey, argusEvent } = useApp();
-  const zoneId = (location.state as any)?.zoneId || selectedZoneId || 1;
+  const { selectedZoneId, setSelectedZoneId, addToast, refreshKey, argusEvent } = useApp();
+  const [zoneId, setZoneId] = useState<number>(
+    (location.state as any)?.zoneId || selectedZoneId || 1
+  );
+  const [allZones, setAllZones] = useState<RiskZone[]>([]);
   const [zone, setZone] = useState<RiskZone | null>(null);
   const [trendData, setTrendData] = useState<TimeSeriesPoint[]>([]);
   const [rainfallData, setRainfallData] = useState<TimeSeriesPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetchRiskZones().then(setAllZones).catch(() => {});
+  }, [refreshKey]);
 
   const loadData = async () => {
     try {
@@ -39,6 +46,11 @@ export default function RiskAnalysis() {
   };
 
   useEffect(() => { loadData(); }, [zoneId, refreshKey]);
+
+  const handleZoneChange = (newId: number) => {
+    setZoneId(newId);
+    setSelectedZoneId(newId);
+  };
 
   if (loading) return <LoadingState message="Loading risk analysis..." />;
   if (error) return <ErrorState onRetry={loadData} />;
@@ -65,14 +77,40 @@ export default function RiskAnalysis() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-300"><span className="live-dot" /> Prototype risk engine</div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Risk Analysis</h1>
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-300">
+            <span className="live-dot" /> Multi-Sensor Risk Evaluation
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Risk Analysis & Diagnostics</h1>
           <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
-            <MapPin className="w-3 h-3" />
-            {zone.name} — {zone.region}
+            <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span>{zone.name}</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-300 font-medium">{zone.region}</span>
           </p>
         </div>
-        <StatusBadge level={zone.risk_level} size="md" />
+
+        <div className="flex items-center gap-3">
+          {/* Zone Switcher Dropdown */}
+          {allZones.length > 0 && (
+            <div className="relative">
+              <label htmlFor="zone-select" className="sr-only">Select Monitored Zone</label>
+              <select
+                id="zone-select"
+                value={zoneId}
+                onChange={(e) => handleZoneChange(Number(e.target.value))}
+                className="appearance-none bg-navy-800 border border-navy-600 hover:border-blue-400/50 rounded-lg px-3 py-2 pr-8 text-xs font-semibold text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer shadow-sm transition-all"
+              >
+                {allZones.map((z) => (
+                  <option key={z.id} value={z.id} className="bg-navy-900 text-white">
+                    {z.name} ({z.risk_score}/100 · {z.risk_level})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+          <StatusBadge level={zone.risk_level} size="md" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
@@ -172,6 +210,8 @@ export default function RiskAnalysis() {
                     </linearGradient>
                   </defs>
                   <Area type="monotone" dataKey="value" stroke="#ea580c" strokeWidth={2} fill="url(#riskGrad)" name="Risk Score" />
+                  <ReferenceLine y={75} stroke="#dc2626" strokeDasharray="3 3" label={{ value: 'CRITICAL (75)', fill: '#f87171', fontSize: 9, position: 'insideTopRight' }} />
+                  <ReferenceLine y={50} stroke="#ea580c" strokeDasharray="3 3" label={{ value: 'HIGH (50)', fill: '#fb923c', fontSize: 9, position: 'insideTopRight' }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
