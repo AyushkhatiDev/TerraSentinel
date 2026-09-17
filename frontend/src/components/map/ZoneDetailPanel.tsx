@@ -2,6 +2,7 @@ import type { RiskZone } from '../../api/client';
 import RiskGauge from '../ui/RiskGauge';
 import { X, CloudRain, Droplets, Mountain, Activity, Camera, Brain, Eye, FileWarning } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
 
 interface ZoneDetailPanelProps {
   zone: RiskZone;
@@ -11,6 +12,7 @@ interface ZoneDetailPanelProps {
 
 export default function ZoneDetailPanel({ zone, onClose, onCreateIncident }: ZoneDetailPanelProps) {
   const navigate = useNavigate();
+  const { setSelectedZoneId } = useApp();
 
   const metrics = [
     { icon: CloudRain, label: 'Rainfall', value: `${zone.rainfall} mm / 24h`, warn: zone.rainfall > 80 },
@@ -60,17 +62,22 @@ export default function ZoneDetailPanel({ zone, onClose, onCreateIncident }: Zon
       {/* Actions */}
       <div className="space-y-2 px-4 py-3">
         <button
-          onClick={() => navigate('/risk-analysis', { state: { zoneId: zone.id } })}
-          className="w-full rounded-md border border-blue-500/30 bg-blue-500/15 py-2 text-center text-xs font-semibold uppercase tracking-wider text-blue-300 transition-colors hover:bg-blue-500/25"
+          type="button"
+          onClick={() => {
+            setSelectedZoneId(zone.id);
+            navigate('/risk-analysis', { state: { zoneId: zone.id } });
+          }}
+          className="w-full flex items-center justify-center gap-1.5 rounded-md border border-blue-500/30 bg-blue-500/15 py-2 text-center text-xs font-semibold uppercase tracking-wider text-blue-300 transition-colors hover:bg-blue-500/25 cursor-pointer active:scale-[0.99]"
         >
-          <Eye className="w-3.5 h-3.5 inline mr-1.5" />
+          <Eye className="w-3.5 h-3.5" />
           View Analysis
         </button>
         <button
+          type="button"
           onClick={onCreateIncident}
-          className="w-full rounded-md border border-orange-500/30 bg-orange-500/15 py-2 text-center text-xs font-semibold uppercase tracking-wider text-orange-300 transition-colors hover:bg-orange-500/25"
+          className="w-full flex items-center justify-center gap-1.5 rounded-md border border-orange-500/30 bg-orange-500/15 py-2 text-center text-xs font-semibold uppercase tracking-wider text-orange-300 transition-colors hover:bg-orange-500/25 cursor-pointer active:scale-[0.99]"
         >
-          <FileWarning className="w-3.5 h-3.5 inline mr-1.5" />
+          <FileWarning className="w-3.5 h-3.5" />
           Create Incident
         </button>
       </div>

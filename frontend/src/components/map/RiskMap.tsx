@@ -1,8 +1,10 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import type { RiskZone } from '../../api/client';
+import { useApp } from '../../context/AppContext';
 import StatusBadge from '../ui/StatusBadge';
-import { Camera, CloudRain, Activity, Gauge, Layers3, Radio, MapPin } from 'lucide-react';
+import { Camera, CloudRain, Activity, Gauge, Layers3, Radio, MapPin, Eye } from 'lucide-react';
 
 interface RiskMapProps {
   zones: RiskZone[];
@@ -35,6 +37,59 @@ function MapBoundsUpdater({ zones }: { zones: RiskZone[] }) {
     }
   }, [map, zones]);
   return null;
+}
+
+function PopupDetailsButton({
+  zone,
+  onZoneSelect,
+}: {
+  zone: RiskZone;
+  onZoneSelect: (zone: RiskZone) => void;
+}) {
+  const navigate = useNavigate();
+  const { setSelectedZoneId } = useApp();
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleAction = useCallback(
+    (e?: React.MouseEvent | MouseEvent | TouchEvent) => {
+      if (e) {
+        e.stopPropagation();
+      }
+      onZoneSelect(zone);
+      setSelectedZoneId(zone.id);
+      navigate('/risk-analysis', { state: { zoneId: zone.id } });
+    },
+    [zone, onZoneSelect, setSelectedZoneId, navigate]
+  );
+
+  useEffect(() => {
+    const el = btnRef.current;
+    if (!el) return;
+
+    const onNativeClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      handleAction(e);
+    };
+
+    el.addEventListener('click', onNativeClick);
+    el.addEventListener('pointerup', onNativeClick);
+    return () => {
+      el.removeEventListener('click', onNativeClick);
+      el.removeEventListener('pointerup', onNativeClick);
+    };
+  }, [handleAction]);
+
+  return (
+    <button
+      ref={btnRef}
+      type="button"
+      onClick={handleAction}
+      className="mt-2.5 w-full flex items-center justify-center gap-1.5 text-center text-[10px] font-semibold uppercase tracking-wider py-2 px-3 rounded-md bg-blue-500/25 text-blue-300 border border-blue-500/40 hover:bg-blue-500/40 hover:text-white transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+    >
+      <Eye className="w-3.5 h-3.5" />
+      View Details
+    </button>
+  );
 }
 
 export default function RiskMap({ zones, onZoneSelect, selectedZoneId }: RiskMapProps) {
@@ -83,6 +138,7 @@ export default function RiskMap({ zones, onZoneSelect, selectedZoneId }: RiskMap
                   fillOpacity: isSelected ? 0.9 : riskFillOpacity[zone.risk_level] || 0.15,
                   weight: isSelected ? 3 : 2,
                   opacity: isCritical ? 1 : 0.85,
+                  className: 'cursor-pointer',
                 }}
                 eventHandlers={{
                   click: () => onZoneSelect(zone),
@@ -112,12 +168,7 @@ export default function RiskMap({ zones, onZoneSelect, selectedZoneId }: RiskMap
                       <Camera className="w-3 h-3" /> CCTV: {zone.cctv_status}
                     </div>
                   </div>
-                  <button
-                    onClick={() => onZoneSelect(zone)}
-                    className="mt-2 w-full text-center text-[10px] font-semibold uppercase tracking-wider py-1.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
-                  >
-                    View Details
-                  </button>
+                  <PopupDetailsButton zone={zone} onZoneSelect={onZoneSelect} />
                 </div>
                 </Popup>
               </CircleMarker>
